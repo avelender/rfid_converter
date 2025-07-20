@@ -90,22 +90,23 @@ class RFIDConverterApp:
     def __init__(self, root):
         self.root = root
         self.root.title("RFID Конвертер")
-        self.root.geometry("600x400")
+        self.root.geometry("600x650")
         self.root.resizable(True, True)
+        self.root.minsize(600, 650)
         
-        # Создаем вкладки
-        self.notebook = ttk.Notebook(root)
-        self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        # Создаем основной фрейм
+        main_frame = ttk.Frame(root, padding=10)
+        main_frame.pack(fill='both', expand=True)
         
-        # Вкладка HEX -> FC/ID
-        self.hex_to_fcid_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.hex_to_fcid_tab, text="HEX → FC/ID")
-        self.setup_hex_to_fcid_tab()
+        # Создаем фрейм для HEX -> FC/ID (верхняя часть)
+        hex_to_fcid_frame = ttk.LabelFrame(main_frame, text="HEX → FC/ID", padding=5)
+        hex_to_fcid_frame.pack(fill='both', expand=True, pady=(0, 10))
+        self.setup_hex_to_fcid_section(hex_to_fcid_frame)
         
-        # Вкладка FC/ID -> HEX
-        self.fcid_to_hex_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.fcid_to_hex_tab, text="FC/ID → HEX")
-        self.setup_fcid_to_hex_tab()
+        # Создаем фрейм для FC/ID -> HEX (нижняя часть)
+        fcid_to_hex_frame = ttk.LabelFrame(main_frame, text="FC/ID → HEX", padding=5)
+        fcid_to_hex_frame.pack(fill='both', expand=True)
+        self.setup_fcid_to_hex_section(fcid_to_hex_frame)
         
         # Создаем фрейм для статусной строки с вдавленным видом
         status_frame = ttk.Frame(root, relief=tk.SUNKEN, borderwidth=1)
@@ -131,9 +132,8 @@ class RFIDConverterApp:
         link_font.configure(underline=True)
         github_link.configure(font=link_font)
 
-    def setup_hex_to_fcid_tab(self):
-        frame = ttk.Frame(self.hex_to_fcid_tab, padding="10")
-        frame.pack(fill='both', expand=True)
+    def setup_hex_to_fcid_section(self, frame):
+        # Используем переданный фрейм вместо создания нового
         
         # Инструкция
         ttk.Label(frame, text="Введите HEX-код карты:", font=("Arial", 12)).pack(pady=(10, 5), anchor=tk.W)
@@ -156,9 +156,8 @@ class RFIDConverterApp:
         copy_btn = ttk.Button(frame, text="Копировать результат", command=lambda: self.copy_to_clipboard(self.fcid_result['text']))
         copy_btn.pack(pady=5)
 
-    def setup_fcid_to_hex_tab(self):
-        frame = ttk.Frame(self.fcid_to_hex_tab, padding="10")
-        frame.pack(fill='both', expand=True)
+    def setup_fcid_to_hex_section(self, frame):
+        # Используем переданный фрейм вместо создания нового
         
         # Инструкция
         ttk.Label(frame, text="Введите FC/ID карты:", font=("Arial", 12)).pack(pady=(10, 5), anchor=tk.W)
