@@ -1,9 +1,12 @@
-# Игнорировать все файлы, кроме rfid_converter.py и rfid_converter_gui.py
+# Игнорировать все файлы, кроме указанных
 *
 !rfid_converter.py
 !rfid_converter_gui.py
 !.gitignore
 !README.md
+!*.png
+!screenshots/
+!screenshots/*.png
 
 # Игнорировать папку doc
 doc/
