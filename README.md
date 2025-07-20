@@ -2,7 +2,7 @@
 
 Программа для конвертации RFID-кодов между форматами HEX и FC/ID.
 
-![RFID Конвертер](https://github.com/avelender/rfid_converter/raw/main/screenshots/rfid_converter.png)
+![RFID Конвертер](https://github.com/avelender/rfid_converter/raw/main/screen.png)
 
 ## Описание
 
