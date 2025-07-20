@@ -145,9 +145,9 @@ class RFIDConverterApp:
         self.hex_input.pack(pady=5, fill=tk.X)
         self.hex_input.bind("<KeyRelease>", self.on_hex_input_change)
         
-        # Кнопка конвертации
-        convert_btn = ttk.Button(frame, text="Конвертировать", command=self.convert_hex_to_fcid)
-        convert_btn.pack(pady=10)
+        # Автоматическая конвертация при вводе текста
+        ttk.Label(frame, text="Конвертация происходит автоматически при вводе", 
+               font=("Arial", 9, "italic")).pack(pady=5)
         
         # Результат
         result_frame = ttk.LabelFrame(frame, text="Результат")
@@ -174,9 +174,9 @@ class RFIDConverterApp:
         self.fcid_input.pack(pady=5, fill=tk.X)
         self.fcid_input.bind("<KeyRelease>", self.on_fcid_input_change)
         
-        # Кнопка конвертации
-        convert_btn = ttk.Button(frame, text="Конвертировать", command=self.convert_fcid_to_hex)
-        convert_btn.pack(pady=10)
+        # Автоматическая конвертация при вводе текста
+        ttk.Label(frame, text="Конвертация происходит автоматически при вводе", 
+               font=("Arial", 9, "italic")).pack(pady=5)
         
         # Результат
         result_frame = ttk.LabelFrame(frame, text="Результат")
