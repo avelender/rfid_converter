@@ -145,10 +145,6 @@ class RFIDConverterApp:
         self.hex_input.pack(pady=5, fill=tk.X)
         self.hex_input.bind("<KeyRelease>", self.on_hex_input_change)
         
-        # Автоматическая конвертация при вводе текста
-        ttk.Label(frame, text="Конвертация происходит автоматически при вводе", 
-               font=("Arial", 9, "italic")).pack(pady=5)
-        
         # Результат
         result_frame = ttk.LabelFrame(frame, text="Результат")
         result_frame.pack(fill=tk.X, pady=10, padx=5)
@@ -173,10 +169,6 @@ class RFIDConverterApp:
                                    paste_callback=self.on_fcid_input_change)
         self.fcid_input.pack(pady=5, fill=tk.X)
         self.fcid_input.bind("<KeyRelease>", self.on_fcid_input_change)
-        
-        # Автоматическая конвертация при вводе текста
-        ttk.Label(frame, text="Конвертация происходит автоматически при вводе", 
-               font=("Arial", 9, "italic")).pack(pady=5)
         
         # Результат
         result_frame = ttk.LabelFrame(frame, text="Результат")
