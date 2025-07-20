@@ -1,0 +1,42 @@
+# Игнорировать все файлы, кроме rfid_converter.py и rfid_converter_gui.py
+*
+!rfid_converter.py
+!rfid_converter_gui.py
+!.gitignore
+!README.md
+
+# Игнорировать папку doc
+doc/
+doc/*
+
+# Стандартные игнорируемые файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Виртуальное окружение
+venv/
+ENV/
+
+# IDE и редакторы
+.idea/
+.vscode/
+*.swp
+*.swo
