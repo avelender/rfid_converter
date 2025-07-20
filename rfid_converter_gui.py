@@ -55,8 +55,9 @@ def hex_to_fc_id(hex_string):
 
         fc = data[4]
         card_id = (data[5] << 8) | data[6]
-
-        return f"{fc}/{card_id}"
+        
+        # Форматируем ID с ведущими нулями (всегда 5 цифр)
+        return f"{fc}/{card_id:05d}"
     except Exception as e:
         return f"Ошибка при разборе HEX: {e}"
 
