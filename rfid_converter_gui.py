@@ -90,22 +90,22 @@ class RFIDConverterApp:
     def __init__(self, root):
         self.root = root
         self.root.title("RFID Конвертер")
-        self.root.geometry("600x650")
+        self.root.geometry("400x220")
         self.root.resizable(True, True)
-        self.root.minsize(600, 650)
+        self.root.minsize(400, 220)
         
         # Создаем основной фрейм
-        main_frame = ttk.Frame(root, padding=10)
-        main_frame.pack(fill='both', expand=True)
+        main_frame = ttk.Frame(root, padding=5)
+        main_frame.pack(fill='x')
         
         # Создаем фрейм для HEX -> FC/ID (верхняя часть)
-        hex_to_fcid_frame = ttk.LabelFrame(main_frame, text="HEX → FC/ID", padding=5)
-        hex_to_fcid_frame.pack(fill='both', expand=True, pady=(0, 10))
+        hex_to_fcid_frame = ttk.LabelFrame(main_frame, text="HEX → FC/ID", padding=2)
+        hex_to_fcid_frame.pack(fill='x', pady=(0, 2))
         self.setup_hex_to_fcid_section(hex_to_fcid_frame)
         
         # Создаем фрейм для FC/ID -> HEX (нижняя часть)
-        fcid_to_hex_frame = ttk.LabelFrame(main_frame, text="FC/ID → HEX", padding=5)
-        fcid_to_hex_frame.pack(fill='both', expand=True)
+        fcid_to_hex_frame = ttk.LabelFrame(main_frame, text="FC/ID → HEX", padding=2)
+        fcid_to_hex_frame.pack(fill='x')
         self.setup_fcid_to_hex_section(fcid_to_hex_frame)
         
         # Создаем фрейм для статусной строки с вдавленным видом
@@ -115,70 +115,78 @@ class RFIDConverterApp:
         # Статусная строка слева
         self.status_var = tk.StringVar()
         self.status_var.set("Готово к работе")
-        self.status_bar = ttk.Label(status_frame, textvariable=self.status_var, anchor=tk.W, padding=(5, 2))
+        self.status_bar = ttk.Label(status_frame, textvariable=self.status_var, anchor=tk.W, padding=(2, 1))
         self.status_bar.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
         # Вертикальный разделитель
-        ttk.Separator(status_frame, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=3)
+        ttk.Separator(status_frame, orient=tk.VERTICAL).pack(side=tk.RIGHT, fill=tk.Y, padx=2, pady=1)
         
         # Ссылка на GitHub справа
         github_url = "https://github.com/avelender/rfid_converter"
-        github_link = ttk.Label(status_frame, text=github_url, foreground="blue", cursor="hand2", padding=(5, 2))
-        github_link.pack(side=tk.RIGHT, padx=5)
+        github_link = ttk.Label(status_frame, text=github_url, foreground="blue", cursor="hand2", padding=(2, 1))
+        github_link.pack(side=tk.RIGHT, padx=2)
         github_link.bind("<Button-1>", lambda e: self.open_url(github_url))
         
         # Создаем простой шрифт с подчеркиванием
-        link_font = font.Font(family="TkDefaultFont", size=8)
+        link_font = font.Font(family="TkDefaultFont", size=7)
         link_font.configure(underline=True)
         github_link.configure(font=link_font)
 
     def setup_hex_to_fcid_section(self, frame):
         # Используем переданный фрейм вместо создания нового
         
-        # Инструкция
-        ttk.Label(frame, text="Введите HEX-код карты:", font=("Arial", 12)).pack(pady=(10, 5), anchor=tk.W)
-        ttk.Label(frame, text="Пример: 6600530072A50101").pack(pady=(0, 10), anchor=tk.W)
+        # Инструкция и поле ввода
+        input_frame = ttk.Frame(frame)
+        input_frame.pack(fill=tk.X, pady=1)
+        
+        ttk.Label(input_frame, text="HEX:", font=("Arial", 9)).pack(side=tk.LEFT, padx=(0, 2))
         
         # Поле ввода с поддержкой вставки
-        self.hex_input = PasteEntry(frame, width=50, font=("Consolas", 12), 
+        self.hex_input = PasteEntry(input_frame, width=30, font=("Consolas", 9), 
                                   paste_callback=self.on_hex_input_change)
-        self.hex_input.pack(pady=5, fill=tk.X)
+        self.hex_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.hex_input.bind("<KeyRelease>", self.on_hex_input_change)
         
+        # Пример
+        ttk.Label(frame, text="Пример: 6600530072A50101", font=("Arial", 7)).pack(anchor=tk.W, pady=0)
+        
         # Результат
-        result_frame = ttk.LabelFrame(frame, text="Результат")
-        result_frame.pack(fill=tk.X, pady=10, padx=5)
+        result_frame = ttk.Frame(frame)
+        result_frame.pack(fill=tk.X, pady=1, padx=1)
         
-        self.fcid_result = ttk.Label(result_frame, text="", font=("Arial", 14, "bold"))
-        self.fcid_result.pack(pady=10, padx=10)
+        self.fcid_result = ttk.Label(result_frame, text="", font=("Arial", 10, "bold"))
+        self.fcid_result.pack(side=tk.LEFT, padx=2)
         
-        # Кнопка копирования
-        copy_btn = ttk.Button(frame, text="Копировать результат", command=lambda: self.copy_to_clipboard(self.fcid_result['text']))
-        copy_btn.pack(pady=5)
+        copy_btn = ttk.Button(result_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.fcid_result['text']))
+        copy_btn.pack(side=tk.LEFT, padx=2)
 
     def setup_fcid_to_hex_section(self, frame):
         # Используем переданный фрейм вместо создания нового
         
-        # Инструкция
-        ttk.Label(frame, text="Введите FC/ID карты:", font=("Arial", 12)).pack(pady=(10, 5), anchor=tk.W)
-        ttk.Label(frame, text="Пример: 114/42241").pack(pady=(0, 10), anchor=tk.W)
+        # Инструкция и поле ввода
+        input_frame = ttk.Frame(frame)
+        input_frame.pack(fill=tk.X, pady=1)
+        
+        ttk.Label(input_frame, text="FC/ID:", font=("Arial", 9)).pack(side=tk.LEFT, padx=(0, 2))
         
         # Поле ввода с поддержкой вставки
-        self.fcid_input = PasteEntry(frame, width=50, font=("Consolas", 12), 
+        self.fcid_input = PasteEntry(input_frame, width=30, font=("Consolas", 9), 
                                    paste_callback=self.on_fcid_input_change)
-        self.fcid_input.pack(pady=5, fill=tk.X)
+        self.fcid_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.fcid_input.bind("<KeyRelease>", self.on_fcid_input_change)
         
+        # Пример
+        ttk.Label(frame, text="Пример: 130/09023", font=("Arial", 7)).pack(anchor=tk.W, pady=0)
+        
         # Результат
-        result_frame = ttk.LabelFrame(frame, text="Результат")
-        result_frame.pack(fill=tk.X, pady=10, padx=5)
+        result_frame = ttk.Frame(frame)
+        result_frame.pack(fill=tk.X, pady=1, padx=1)
         
-        self.hex_result = ttk.Label(result_frame, text="", font=("Consolas", 14, "bold"))
-        self.hex_result.pack(pady=10, padx=10)
+        self.hex_result = ttk.Label(result_frame, text="", font=("Consolas", 10, "bold"))
+        self.hex_result.pack(side=tk.LEFT, padx=2)
         
-        # Кнопка копирования
-        copy_btn = ttk.Button(frame, text="Копировать результат", command=lambda: self.copy_to_clipboard(self.hex_result['text']))
-        copy_btn.pack(pady=5)
+        copy_btn = ttk.Button(result_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.hex_result['text']))
+        copy_btn.pack(side=tk.LEFT, padx=2)
 
     def convert_hex_to_fcid(self):
         hex_input = self.hex_input.get().strip()
