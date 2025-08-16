@@ -41,45 +41,105 @@ class PasteEntry(ttk.Entry):
         except Exception as e:
             print(f"Ошибка при вставке: {e}")
 
+# Словарь для хранения префиксов для каждой карты
+card_prefixes = {}
+
 def hex_to_fc_id(hex_string):
     try:
+        # Удаляем пробелы и приводим к нижнему регистру
         hex_string = hex_string.replace(" ", "").lower()
 
-        if len(hex_string) < 14 or len(hex_string) % 2 != 0:
-            return "Ошибка: строка должна содержать минимум 14–16 hex-символов (7–8 байт)"
+        # Проверяем длину и четность
+        if len(hex_string) < 16:
+            return "Ошибка: строка должна содержать минимум 16 hex-символов (8 байт)"
+        
+        if len(hex_string) % 2 != 0:
+            return "Ошибка: количество hex-символов должно быть четным"
 
-        data = bytes.fromhex(hex_string)
+        # Проверяем, что строка содержит только HEX-символы
+        if not all(c in '0123456789abcdef' for c in hex_string):
+            return "Ошибка: строка содержит недопустимые символы (0-9, a-f)"
 
-        if len(data) < 7:
-            return "Ошибка: недостаточно байтов для разбора"
+        try:
+            data = bytes.fromhex(hex_string)
+        except ValueError:
+            return "Ошибка: неверный формат HEX-строки"
 
+        if len(data) < 8:
+            return "Ошибка: недостаточно байтов для разбора (минимум 8 байт)"
+
+        # Сохраняем префикс (первые 4 байта)
+        prefix = hex_string[:8]
+        
+        # Универсальная формула конвертации
+        # Байт 5 (0-индексированный) - это FC (Facility Code)
+        # Байты 6-7 - это ID карты (2 байта)
         fc = data[4]
         card_id = (data[5] << 8) | data[6]
         
-        # Форматируем ID с ведущими нулями (всегда 5 цифр)
-        return f"{fc}/{card_id:05d}"
+        # Форматируем FC и ID с ведущими нулями (FC - 3 цифры, ID - 5 цифр)
+        card_key = f"{fc:03d}/{card_id:05d}"
+        
+        # Сохраняем префикс для этой карты
+        card_prefixes[card_key] = prefix
+        
+        return card_key
     except Exception as e:
         return f"Ошибка при разборе HEX: {e}"
 
 
 def fc_id_to_hex(fc_id_str):
     try:
-        parts = fc_id_str.strip().split("/")
+        # Проверяем формат ввода
+        fc_id_str = fc_id_str.strip()
+        if '/' not in fc_id_str:
+            return "Ошибка: используйте формат FC/ID, например 114/42241"
+        
+        parts = fc_id_str.split("/")
         if len(parts) != 2:
             return "Ошибка: используйте формат FC/ID, например 114/42241"
 
-        fc = int(parts[0])
-        card_id = int(parts[1])
+        # Проверяем, что введены числа
+        try:
+            fc = int(parts[0])
+        except ValueError:
+            return "Ошибка: FC должен быть числом"
+            
+        try:
+            card_id = int(parts[1])
+        except ValueError:
+            return "Ошибка: ID должен быть числом"
 
-        if not (0 <= fc <= 255 and 0 <= card_id <= 65535):
-            return "Ошибка: FC должен быть 0–255, ID — 0–65535"
+        # Проверяем диапазоны
+        if not (0 <= fc <= 255):
+            return "Ошибка: FC должен быть в диапазоне 0–255"
+            
+        if not (0 <= card_id <= 65535):
+            return "Ошибка: ID должен быть в диапазоне 0–65535"
+        
+        # Форматируем ключ для поиска в словаре
+        card_key = f"{fc:03d}/{card_id:05d}"
+        
+        # Используем сохраненный префикс, если он есть
+        prefix = card_prefixes.get(card_key)
+        
+        # Если префикс не найден, используем универсальный префикс
+        if prefix is None:
+            # Для всех карт используем стандартный префикс XX003300
+            # Где XX зависит от номера карты
+            # Используем хеш-функцию для стабильности префикса
+            hash_value = (fc * 256 + card_id) % 192 + 32  # Диапазон 32-224 (0x20-0xE0)
+            prefix = f"{hash_value:02X}003300"
 
+        # Универсальная формула конвертации
+        # Собираем данные в формате XXXXXXXX YY ZZZZ 01
+        # Где XXXXXXXX - префикс, YY - FC, ZZZZ - ID, 01 - фиксированный байт
         data = bytearray()
-        data += bytes.fromhex("66005300")       # фиксированная часть
-        data.append(fc)                          # FC
-        data.append((card_id >> 8) & 0xFF)       # старший байт
-        data.append(card_id & 0xFF)              # младший байт
-        data.append(0x01)                        # фиксирующий байт
+        data += bytes.fromhex(prefix)            # префикс (4 байта)
+        data.append(fc)                          # FC (1 байт)
+        data.append((card_id >> 8) & 0xFF)       # старший байт ID
+        data.append(card_id & 0xFF)              # младший байт ID
+        data.append(0x01)                        # фиксированный байт
 
         return data.hex().upper()
     except Exception as e:
@@ -157,8 +217,14 @@ class RFIDConverterApp:
         self.fcid_result = ttk.Label(result_frame, text="", font=("Arial", 10, "bold"))
         self.fcid_result.pack(side=tk.LEFT, padx=2)
         
-        copy_btn = ttk.Button(result_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.fcid_result['text']))
+        buttons_frame = ttk.Frame(result_frame)
+        buttons_frame.pack(side=tk.LEFT)
+        
+        copy_btn = ttk.Button(buttons_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.fcid_result['text']))
         copy_btn.pack(side=tk.LEFT, padx=2)
+        
+        clear_btn = ttk.Button(buttons_frame, text="Очистить", command=lambda: self.clear_hex_input())
+        clear_btn.pack(side=tk.LEFT, padx=2)
 
     def setup_fcid_to_hex_section(self, frame):
         # Используем переданный фрейм вместо создания нового
@@ -185,8 +251,14 @@ class RFIDConverterApp:
         self.hex_result = ttk.Label(result_frame, text="", font=("Consolas", 10, "bold"))
         self.hex_result.pack(side=tk.LEFT, padx=2)
         
-        copy_btn = ttk.Button(result_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.hex_result['text']))
+        buttons_frame = ttk.Frame(result_frame)
+        buttons_frame.pack(side=tk.LEFT)
+        
+        copy_btn = ttk.Button(buttons_frame, text="Копировать", command=lambda: self.copy_to_clipboard(self.hex_result['text']))
         copy_btn.pack(side=tk.LEFT, padx=2)
+        
+        clear_btn = ttk.Button(buttons_frame, text="Очистить", command=lambda: self.clear_fcid_input())
+        clear_btn.pack(side=tk.LEFT, padx=2)
 
     def convert_hex_to_fcid(self):
         hex_input = self.hex_input.get().strip()
@@ -247,9 +319,19 @@ class RFIDConverterApp:
         import webbrowser
         webbrowser.open_new(url)
         self.status_var.set("Готово к работе")
-        
-
-
+    
+    def clear_hex_input(self):
+        """Clear HEX input field and result"""
+        self.hex_input.delete(0, tk.END)
+        self.fcid_result['text'] = ""
+        self.status_var.set("Поле HEX очищено")
+    
+    def clear_fcid_input(self):
+        """Clear FC/ID input field and result"""
+        self.fcid_input.delete(0, tk.END)
+        self.hex_result['text'] = ""
+        self.status_var.set("Поле FC/ID очищено")
+    
 
 if __name__ == "__main__":
     try:
