@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, font
-import re
-import sys
-from ttkthemes import ThemedTk
+try:
+    from ttkthemes import ThemedTk
+except Exception:
+    ThemedTk = None
 
 # Создаем свой класс Entry с поддержкой Ctrl+V независимо от раскладки
 class PasteEntry(ttk.Entry):
@@ -291,7 +292,7 @@ class RFIDConverterApp:
     def on_hex_input_change(self, event=None):
         # Автоматическая конвертация при вводе
         hex_input = self.hex_input.get().strip()
-        if len(hex_input) >= 14:
+        if len(hex_input) >= 16 and len(hex_input) % 2 == 0:
             result = hex_to_fc_id(hex_input)
             self.fcid_result['text'] = result
             
@@ -334,32 +335,14 @@ class RFIDConverterApp:
     
 
 if __name__ == "__main__":
-    try:
-        # Используем ThemedTk для красивой темы
+    # Используем ThemedTk для красивой темы, если доступен
+    if ThemedTk is not None:
         root = ThemedTk(theme="arc")  # Можно выбрать другие темы: "arc", "equilux", "breeze" и т.д.
-    except Exception:
-        # Если не получилось, используем обычный Tk
+    else:
+        # Если ttkthemes недоступен, используем обычный Tk
         root = tk.Tk()
         
-    # Настраиваем обработку вставки для всех платформ
-    # Создаем виртуальное событие для вставки
-    root.event_add('<<PasteText>>', '<Control-v>', '<Control-V>')
-    
-    # Добавляем обработчик для всех Entry
-    def handle_paste(event):
-        try:
-            widget = event.widget
-            if isinstance(widget, tk.Entry) or isinstance(widget, ttk.Entry):
-                clipboard = widget.clipboard_get()
-                if clipboard:
-                    widget.delete(0, tk.END)
-                    widget.insert(0, clipboard)
-                    return "break"
-        except Exception as e:
-            print(f"Ошибка при вставке: {e}")
-    
-    # Привязываем обработчик к виртуальному событию
-    root.bind_class('Entry', '<<PasteText>>', handle_paste)
+    # Вставка обрабатывается непосредственно в PasteEntry
         
     app = RFIDConverterApp(root)
     
