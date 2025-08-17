@@ -183,12 +183,12 @@ class RFIDConverterApp:
         
         # Ссылка на GitHub справа
         github_url = "https://github.com/avelender/rfid_converter"
-        github_link = ttk.Label(status_frame, text=github_url, foreground="blue", cursor="hand2", padding=(2, 1))
+        github_link = ttk.Label(status_frame, text="Github", foreground="blue", cursor="hand2", padding=(2, 1))
         github_link.pack(side=tk.RIGHT, padx=2)
         github_link.bind("<Button-1>", lambda e: self.open_url(github_url))
         
         # Создаем простой шрифт с подчеркиванием
-        link_font = font.Font(family="TkDefaultFont", size=7)
+        link_font = font.Font(family="TkDefaultFont", size=8)
         link_font.configure(underline=True)
         github_link.configure(font=link_font)
 
